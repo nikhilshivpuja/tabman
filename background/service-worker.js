@@ -24,7 +24,7 @@ chrome.runtime.onStartup.addListener(() => {
 });
 
 async function bootstrap() {
-  setupAlarm();
+  await setupAlarm();
   await initTabRegistry();
   try {
     const [active] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
@@ -41,8 +41,28 @@ async function touchTabAccessed(tabId, at = Date.now()) {
   await saveTabRegistry(registry);
 }
 
-function setupAlarm() {
-  chrome.alarms.create(ALARM_NAME, { periodInMinutes: ARCHIVE_CHECK_MINUTES });
+async function setupAlarm() {
+  const existing = await chrome.alarms.get(ALARM_NAME);
+  if (!existing) {
+    await chrome.alarms.create(ALARM_NAME, {
+      periodInMinutes: ARCHIVE_CHECK_MINUTES,
+      delayInMinutes: ARCHIVE_CHECK_MINUTES,
+    });
+  }
+}
+
+async function getArchiveSchedule() {
+  const settings = await getSettings();
+  const alarm = await chrome.alarms.get(ALARM_NAME);
+  if (!alarm) {
+    await setupAlarm();
+  }
+  const scheduled = (await chrome.alarms.get(ALARM_NAME))?.scheduledTime ?? null;
+  return {
+    nextCheckAt: scheduled,
+    intervalMinutes: ARCHIVE_CHECK_MINUTES,
+    idleDays: settings.idleDays,
+  };
 }
 
 async function startupTasks() {
@@ -222,6 +242,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         sendResponse({ success: true });
       })
       .catch((err) => sendResponse({ success: false, error: err.message }));
+    return true;
+  }
+
+  if (message.action === 'getArchiveSchedule') {
+    getArchiveSchedule()
+      .then((schedule) => sendResponse(schedule))
+      .catch((err) => sendResponse({ error: err.message }));
     return true;
   }
 

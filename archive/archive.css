@@ -1,3 +1,14 @@
+.schedule-info {
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.schedule-info strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+
 .toolbar {
   display: flex;
   flex-wrap: wrap;

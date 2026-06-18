@@ -1,5 +1,5 @@
 import { getAllArchives, deleteArchive, mergeArchives } from '../lib/db.js';
-import { groupByWindowAndTabGroup, formatDateTime } from '../lib/constants.js';
+import { groupByWindowAndTabGroup, formatDateTime, formatRelativeFuture } from '../lib/constants.js';
 import { TAB_GROUP_COLORS } from '../lib/tab-context.js';
 import {
   exportArchivesToFile,
@@ -13,8 +13,10 @@ const domainFilter = document.getElementById('domain-filter');
 const archiveList = document.getElementById('archive-list');
 const emptyState = document.getElementById('empty-state');
 const statsEl = document.getElementById('stats');
+const scheduleEl = document.getElementById('schedule-info');
 
 let allArchives = [];
+let scheduleTimer = null;
 
 async function init() {
   await tryLoadFromSyncFolder();
@@ -22,6 +24,33 @@ async function init() {
   populateDomainFilter();
   render();
   bindEvents();
+  await updateScheduleInfo();
+  scheduleTimer = setInterval(updateScheduleInfo, 60_000);
+}
+
+async function updateScheduleInfo() {
+  try {
+    const schedule = await chrome.runtime.sendMessage({ action: 'getArchiveSchedule' });
+    if (schedule?.error || schedule?.nextCheckAt == null) {
+      scheduleEl.textContent = 'Next automatic archive check: not scheduled yet.';
+      scheduleEl.hidden = false;
+      return;
+    }
+
+    const relative = formatRelativeFuture(schedule.nextCheckAt);
+    const absolute = formatDateTime(schedule.nextCheckAt);
+    const idleLabel = schedule.idleDays === 1 ? '1 day' : `${schedule.idleDays} days`;
+
+    scheduleEl.innerHTML =
+      `Next automatic archive check: <strong>${relative}</strong> (${absolute}). ` +
+      `Repeats every ${schedule.intervalMinutes} minutes. ` +
+      `Also runs on browser startup and when settings are saved. ` +
+      `Idle threshold: ${idleLabel}.`;
+    scheduleEl.hidden = false;
+  } catch {
+    scheduleEl.textContent = 'Could not load archive schedule.';
+    scheduleEl.hidden = false;
+  }
 }
 
 async function tryLoadFromSyncFolder() {
