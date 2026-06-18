@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tabman Settings</title>
+  <link rel="stylesheet" href="../styles/shared.css">
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <header class="header">
+    <h1>Tabman Settings</h1>
+    <nav class="nav-links">
+      <a href="../archive/archive.html">Archive</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>Archiving</h2>
+      <div class="form-row">
+        <label for="idle-days">Archive tabs idle for (days)</label>
+        <input type="number" id="idle-days" min="0" max="365" step="1" value="2">
+      <p class="muted">Tabs not switched to for this many days will be archived and closed. Checks run every 30 minutes, on browser startup, and when you save settings.</p>
+      </div>
+
+      <div class="actions">
+        <button type="button" id="archive-now" class="primary">Archive now</button>
+        <button type="button" id="archive-test" class="danger">Test: archive all tracked tabs</button>
+      </div>
+      <p class="muted">Archive now runs the idle check immediately using the days setting above. Test mode archives every tracked tab regardless of idle time.</p>
+      <div id="archive-status" class="status" hidden></div>
+    </section>
+
+    <section class="card">
+      <h2>Tracked tabs preview</h2>
+      <p class="muted">Shows when you last <em>switched to</em> each tab. Tabs you haven't clicked since tracking started show "Never switched to".</p>
+      <button type="button" id="refresh-tracked">Refresh list</button>
+      <button type="button" id="reset-tracking">Reset tracking data</button>
+      <div id="tracked-list" class="tracked-list muted">Loading...</div>
+    </section>
+
+    <section class="card">
+      <h2>AI summary (optional)</h2>
+      <div class="form-row inline">
+        <input type="checkbox" id="ai-enabled">
+        <label for="ai-enabled">Enable AI summaries when archiving</label>
+      </div>
+      <div class="form-row">
+        <label for="ai-provider">Provider</label>
+        <select id="ai-provider">
+          <option value="openai">OpenAI</option>
+          <option value="gemini">Google Gemini</option>
+          <option value="azure">Azure OpenAI</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="api-key">API key</label>
+        <input type="password" id="api-key" placeholder="sk-..." autocomplete="off">
+      </div>
+      <div class="form-row" id="azure-fields" hidden>
+        <label for="azure-endpoint">Azure endpoint</label>
+        <input type="url" id="azure-endpoint" placeholder="https://your-resource.openai.azure.com">
+        <label for="azure-deployment" style="margin-top:8px;display:block">Deployment name</label>
+        <input type="text" id="azure-deployment" placeholder="gpt-4o-mini">
+      </div>
+      <div class="form-row">
+        <label for="ai-model">Model (optional)</label>
+        <input type="text" id="ai-model" placeholder="Leave blank for default">
+      </div>
+      <div class="actions">
+        <button type="button" id="validate-key">Validate API key</button>
+      </div>
+      <div id="ai-status" class="status" hidden></div>
+      <p class="muted">Without a valid key, archived tabs use the first 3 lines of page content instead.</p>
+    </section>
+
+    <section class="card">
+      <h2>Cross-device sync</h2>
+      <p class="muted">Link a folder (e.g. OneDrive or Dropbox) to auto-save <code>tabman-archive.json</code> for use on other devices.</p>
+      <div class="actions">
+        <button type="button" id="pick-folder">Choose sync folder</button>
+        <button type="button" id="sync-folder-now">Sync archive to folder now</button>
+      </div>
+      <div id="sync-status" class="status" hidden></div>
+    </section>
+
+    <div class="actions">
+      <button type="button" id="save-settings" class="primary">Save settings</button>
+    </div>
+    <div id="save-status" class="status" hidden></div>
+  </main>
+
+  <script type="module" src="settings.js"></script>
+</body>
+</html>

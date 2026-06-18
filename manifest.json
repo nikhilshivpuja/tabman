@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "Tabman",
+  "version": "1.0.0",
+  "description": "Archive idle browser tabs with searchable history. Closes tabs after saving.",
+  "permissions": ["tabs", "tabGroups", "storage", "alarms", "scripting"],
+  "host_permissions": ["<all_urls>"],
+  "optional_permissions": ["unlimitedStorage"],
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Tabman",
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/extract-snippet.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

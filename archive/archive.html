@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tabman Archive</title>
+  <link rel="stylesheet" href="../styles/shared.css">
+  <link rel="stylesheet" href="archive.css">
+</head>
+<body>
+  <header class="header">
+    <h1>Tabman Archive</h1>
+    <nav class="nav-links">
+      <a href="../settings/settings.html">Settings</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="toolbar card">
+      <input type="search" id="search" placeholder="Search title, URL, group, snippet..." aria-label="Search archives">
+      <select id="domain-filter" aria-label="Filter by domain">
+        <option value="">All domains</option>
+      </select>
+      <div class="actions">
+        <button id="export-btn" type="button">Export to file</button>
+        <button id="import-btn" type="button">Import from file</button>
+        <button id="sync-now-btn" type="button">Sync to folder</button>
+      </div>
+    </section>
+
+    <div id="stats" class="muted"></div>
+    <div id="archive-list"></div>
+    <div id="empty-state" class="card muted" hidden>
+      No archived tabs yet. Idle tabs will appear here after they are archived.
+    </div>
+  </main>
+
+  <script type="module" src="archive.js"></script>
+</body>
+</html>

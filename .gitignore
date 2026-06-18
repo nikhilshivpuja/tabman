@@ -1,0 +1,8 @@
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*
+
+# Duplicate icons from early generate-icons script run
+scripts/icons/
