@@ -8,6 +8,7 @@ import {
 import { addArchive } from '../lib/db.js';
 import { summarizeText } from '../lib/ai.js';
 import { getTabGroupInfo } from '../lib/tab-context.js';
+import { requestAutoSync } from '../lib/background-sync.js';
 
 const ALARM_NAME = 'tabman-archive-check';
 const ARCHIVE_CHECK_MINUTES = 30;
@@ -71,6 +72,11 @@ async function startupTasks() {
     await archiveIdleTabs();
   } catch (err) {
     console.error('Tabman startup archive check failed:', err);
+  }
+  try {
+    await requestAutoSync();
+  } catch {
+    // Sync folder may not be configured
   }
 }
 
@@ -385,5 +391,14 @@ async function archiveIdleTabs({ force = false } = {}) {
   }
 
   await saveTabRegistry(registry);
+
+  if (results.archived.length > 0) {
+    try {
+      await requestAutoSync();
+    } catch {
+      // Sync folder may not be configured
+    }
+  }
+
   return results;
 }

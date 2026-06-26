@@ -1,11 +1,11 @@
 import { getAllArchives, deleteArchive, mergeArchives } from '../lib/db.js';
 import { groupByWindowAndTabGroup, formatDateTime, formatRelativeFuture } from '../lib/constants.js';
 import { TAB_GROUP_COLORS } from '../lib/tab-context.js';
+import { recordArchiveDeletion } from '../lib/sync.js';
 import {
   exportArchivesToFile,
   importArchivesFromFile,
-  syncArchivesToDirectory,
-  loadArchivesFromSyncDirectory,
+  autoSyncArchives,
 } from '../lib/storage.js';
 
 const searchInput = document.getElementById('search');
@@ -19,7 +19,7 @@ let allArchives = [];
 let scheduleTimer = null;
 
 async function init() {
-  await tryLoadFromSyncFolder();
+  await autoSyncArchives().catch(() => {});
   allArchives = await getAllArchives();
   populateDomainFilter();
   render();
@@ -45,7 +45,7 @@ async function updateScheduleInfo() {
       `Next automatic archive check: <strong>${relative}</strong> (${absolute}). ` +
       `Repeats every ${schedule.intervalMinutes} minutes. ` +
       `Also runs on browser startup and when settings are saved. ` +
-      `Idle threshold: ${idleLabel}.`;
+      `Idle threshold: ${idleLabel}. Archives auto-sync to your linked folder when configured.`;
     scheduleEl.hidden = false;
   } catch {
     scheduleEl.textContent = 'Could not load archive schedule.';
@@ -53,15 +53,14 @@ async function updateScheduleInfo() {
   }
 }
 
-async function tryLoadFromSyncFolder() {
-  try {
-    const remote = await loadArchivesFromSyncDirectory();
-    if (remote?.length) {
-      await mergeArchives(remote);
-    }
-  } catch {
-    // No sync folder configured
-  }
+async function removeArchiveEntry(id) {
+  const item = allArchives.find((a) => a.id === id);
+  if (item) await recordArchiveDeletion(item);
+  await deleteArchive(id);
+  await autoSyncArchives().catch(() => {});
+  allArchives = await getAllArchives();
+  populateDomainFilter();
+  render();
 }
 
 function populateDomainFilter() {
@@ -177,18 +176,12 @@ function renderItem(item) {
       chrome.tabs.create({ url: btn.dataset.url });
     } else if (action === 'open-remove') {
       chrome.tabs.create({ url: btn.dataset.url });
-      await deleteArchive(btn.dataset.id);
-      allArchives = await getAllArchives();
-      populateDomainFilter();
-      render();
+      await removeArchiveEntry(btn.dataset.id);
     } else if (action === 'copy') {
       await navigator.clipboard.writeText(btn.dataset.url);
     } else if (action === 'delete') {
       if (confirm('Delete this archive entry?')) {
-        await deleteArchive(btn.dataset.id);
-        allArchives = await getAllArchives();
-        populateDomainFilter();
-        render();
+        await removeArchiveEntry(btn.dataset.id);
       }
     }
   });
@@ -212,21 +205,13 @@ function bindEvents() {
     try {
       const imported = await importArchivesFromFile();
       allArchives = await mergeArchives(imported);
+      await autoSyncArchives().catch(() => {});
+      allArchives = await getAllArchives();
       populateDomainFilter();
       render();
       alert(`Imported. ${allArchives.length} total archives.`);
     } catch (err) {
       if (err.name !== 'AbortError') alert(`Import failed: ${err.message}`);
-    }
-  });
-
-  document.getElementById('sync-now-btn').addEventListener('click', async () => {
-    try {
-      const ok = await syncArchivesToDirectory(allArchives);
-      if (ok) alert('Synced to linked folder.');
-      else alert('No sync folder linked. Set one in Settings.');
-    } catch (err) {
-      alert(`Sync failed: ${err.message}`);
     }
   });
 }

@@ -1,6 +1,5 @@
-import { getSettings, saveSettings, pickSyncDirectory, syncArchivesToDirectory } from '../lib/storage.js';
+import { getSettings, saveSettings, pickSyncDirectory } from '../lib/storage.js';
 import { validateApiKey, getDefaultModel } from '../lib/ai.js';
-import { getAllArchives } from '../lib/db.js';
 import { formatDateTime, formatRelativeTime } from '../lib/constants.js';
 import { TAB_GROUP_COLORS } from '../lib/tab-context.js';
 
@@ -137,15 +136,6 @@ async function runArchive({ force = false } = {}) {
 
   showStatus(statusEl, msg, errors.length ? 'error' : 'success');
   refreshTrackedTabs();
-
-  if (archived.length > 0) {
-    try {
-      const archives = await getAllArchives();
-      await syncArchivesToDirectory(archives);
-    } catch {
-      // Sync folder optional
-    }
-  }
 }
 
 document.getElementById('save-settings').addEventListener('click', async () => {
@@ -204,22 +194,14 @@ fields.aiProvider.addEventListener('change', toggleAzureFields);
 document.getElementById('pick-folder').addEventListener('click', async () => {
   const statusEl = document.getElementById('sync-status');
   try {
-    await pickSyncDirectory();
-    showStatus(statusEl, 'Sync folder linked. Use "Sync archive to folder now" or archive tabs to update the file.', 'success');
+    const result = await pickSyncDirectory();
+    showStatus(
+      statusEl,
+      `Sync folder linked. ${result?.count ?? 0} archive(s) merged and synced automatically.`,
+      'success'
+    );
   } catch (err) {
     if (err.name !== 'AbortError') showStatus(statusEl, err.message, 'error');
-  }
-});
-
-document.getElementById('sync-folder-now').addEventListener('click', async () => {
-  const statusEl = document.getElementById('sync-status');
-  try {
-    const archives = await getAllArchives();
-    const ok = await syncArchivesToDirectory(archives);
-    if (ok) showStatus(statusEl, `Synced ${archives.length} archive(s) to folder.`, 'success');
-    else showStatus(statusEl, 'No sync folder linked yet.', 'error');
-  } catch (err) {
-    showStatus(statusEl, err.message, 'error');
   }
 });
 

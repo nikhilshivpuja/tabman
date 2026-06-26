@@ -3,9 +3,8 @@
   "name": "Tabman",
   "version": "1.0.0",
   "description": "Archive idle browser tabs with searchable history. Closes tabs after saving.",
-  "permissions": ["tabs", "tabGroups", "storage", "alarms", "scripting"],
+  "permissions": ["tabs", "tabGroups", "storage", "alarms", "scripting", "offscreen"],
   "host_permissions": ["<all_urls>"],
-  "optional_permissions": ["unlimitedStorage"],
   "background": {
     "service_worker": "background/service-worker.js",
     "type": "module"

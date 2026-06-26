@@ -16,7 +16,7 @@ Edge/Chrome extension that archives idle tabs (title, URL, text snippet or AI su
 - **Settings → Test: archive all tracked tabs** — archives every tracked tab right now (for testing)
 - **Archive page** — search, filter by domain, grouped by open date
 - **Export / Import** — JSON file for backup or cross-device use
-- **Sync folder** — link a OneDrive/Dropbox folder; writes `tabman-archive.json`
+- **Sync folder** — link a OneDrive/Dropbox folder on each device; archives auto-merge to `tabman-archive.json` (no manual sync)
 
 ## Defaults
 
